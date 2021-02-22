@@ -1,6 +1,5 @@
-# Anwendunge starten - lokal
+# Demo zur Anwendung des Spring-Webclient
+ 
+Die Demo wird über die Tests mithilfe von SpringBootTests ausgeführt:
 
-    
-Die Anwendung kann über Maven folgendermaßen gestartet werden:
-
-    - mvn spring-boot:run -Dspring-boot.run.profiles=local 
+    - mvn test
