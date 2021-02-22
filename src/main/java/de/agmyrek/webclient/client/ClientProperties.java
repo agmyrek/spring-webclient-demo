@@ -1,20 +1,21 @@
 package de.agmyrek.webclient.client;
 
-import org.springframework.context.annotation.Configuration;
+import lombok.Data;
+import lombok.RequiredArgsConstructor;
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.boot.context.properties.ConstructorBinding;
 import org.springframework.web.util.UriComponentsBuilder;
 
 import java.net.URI;
 
-@Configuration
+@ConfigurationProperties(prefix = "client")
+@ConstructorBinding
+@RequiredArgsConstructor
 public class ClientProperties {
 
-    private String baseUrl;
-    private String relativeUrl;
+    private final String uri;
 
-    URI getUrl(){
-        return UriComponentsBuilder
-                .fromHttpUrl(baseUrl + relativeUrl)
-                .build()
-                .toUri();
+    URI getUri(){
+        return UriComponentsBuilder.fromHttpUrl(uri).build().toUri();
     }
 }

@@ -1,7 +1,8 @@
 package de.agmyrek.webclient.client;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -9,25 +10,19 @@ import reactor.core.publisher.Mono;
 
 @Slf4j
 @Component
+@RequiredArgsConstructor
 public class Client {
 
-    @Autowired
     private final WebClient webClient;
-    @Autowired
     private final ClientProperties clientProperties;
 
-    public Client(WebClient webClient, ClientProperties clientProperties){
-        this.webClient = webClient;
-        this.clientProperties = clientProperties;
-    }
-
-    Mono<ResponseDto> get(RequestDto requestDto) {
+    Mono<JsonNode> get() {
         return this.webClient
                 .get()
-                .uri(clientProperties.getUrl())
+                .uri(clientProperties.getUri())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(ResponseDto.class)
+                .bodyToMono(JsonNode.class)
                 .doOnError(e -> log.error("Fehler bei der Anfrage.", e))
                 .doOnSuccess(response -> log.info("Response Payload: {}", response));
     }
