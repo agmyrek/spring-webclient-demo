@@ -3,7 +3,6 @@ package de.agmyrek.webclient.client;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
-import org.junit.Assert;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
@@ -14,12 +13,11 @@ import org.springframework.test.context.DynamicPropertySource;
 
 import java.io.IOException;
 
-
 @SpringBootTest
-class ClientTest {
+class ClientWithFluxTest {
 
     @Autowired
-    private Client client;
+    private ClientWithFlux client;
     static MockWebServer mockWebServer = new MockWebServer();
 
     @DynamicPropertySource
@@ -29,11 +27,16 @@ class ClientTest {
     }
 
     @Test
-    void get() {
+    void getFlux() {
         var responseBody = """
-                {
-                    "name": "Mustermann"
-                }
+                [
+                    {
+                        "name": "Max"
+                    },
+                    {
+                        "name": "Moritz"
+                    }
+                ]
                 """;
         mockWebServer.enqueue(
                 new MockResponse()
@@ -41,10 +44,27 @@ class ClientTest {
                         .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                         .setBody(responseBody)
         );
-        var responseDto = client.get().block();
+        var responseDto = client.getFlux();
 
-        Assertions.assertThat(responseDto.get("name").asText()).isEqualTo("Mustermann");
+        Assertions.assertThat(responseDto.size()).isEqualTo(2);
+        Assertions.assertThat(responseDto.get(0).get("name").asText()).isEqualTo("Max");
+        Assertions.assertThat(responseDto.get(1).get("name").asText()).isEqualTo("Moritz");
+    }
 
+    @Test
+    void getFluxLeereAntwort() {
+        var responseBody = """
+                [
+                ]
+                """;
+        mockWebServer.enqueue(
+                new MockResponse()
+                        .setResponseCode(200)
+                        .setHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
+                        .setBody(responseBody)
+        );
+        var responseDto = client.getFlux();
 
+        Assertions.assertThat(responseDto.isEmpty()).isTrue();
     }
 }

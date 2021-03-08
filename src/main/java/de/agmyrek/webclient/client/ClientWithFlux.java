@@ -6,24 +6,27 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.stereotype.Component;
 import org.springframework.web.reactive.function.client.WebClient;
-import reactor.core.publisher.Mono;
+
+import java.util.List;
 
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class Client {
+public class ClientWithFlux {
 
     private final WebClient webClient;
     private final ClientProperties clientProperties;
 
-    Mono<JsonNode> get() {
+
+    List<JsonNode> getFlux() {
         return this.webClient
                 .get()
                 .uri(clientProperties.getUri())
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
-                .bodyToMono(JsonNode.class)
+                .bodyToFlux(JsonNode.class)
                 .doOnError(e -> log.error("Fehler bei der Anfrage.", e))
-                .doOnSuccess(response -> log.info("Response Payload: {}", response));
+                .collectList()
+                .block();
     }
 }
