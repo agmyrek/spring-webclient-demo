@@ -10,39 +10,26 @@ import okhttp3.mockwebserver.RecordedRequest;
 import org.assertj.core.api.Assertions;
 import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.io.IOException;
 
-
-@SpringBootTest
 class ClientWithMonoDispatcherTest {
 
     private static final String personRessource = "/person";
     private static final String personClientFehlerRessource = "/person-fehler";
 
-    @Autowired
-    private ClientWithMono clientWithMono;
-    static MockWebServer mockWebServer = new MockWebServer();
-    private final ObjectMapper objectMapper = new ObjectMapper();
-
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry r) throws IOException {
-        //konfiguration mit mockwebserver überschreiben
-        r.add("client.uri", () -> "http://localhost:" + mockWebServer.getPort());
-    }
+    static ClientWithMonoPost clientWithMono;
+    static MockWebServer mockWebServer;
+    private static final ObjectMapper objectMapper = new ObjectMapper();
 
     @BeforeAll
     static void setup(){
+        mockWebServer = new MockWebServer();
         final Dispatcher dispatcher = new Dispatcher() {
 
             @Override
             public MockResponse dispatch (RecordedRequest request) {
-
                 return switch (request.getPath()) {
                     case personRessource -> new MockResponse().setResponseCode(200);
                     case personClientFehlerRessource -> new MockResponse().setResponseCode(400);
@@ -51,6 +38,10 @@ class ClientWithMonoDispatcherTest {
             }
         };
         mockWebServer.setDispatcher(dispatcher);
+        var mockedUri = "http://localhost:" + mockWebServer.getPort();
+        var clientProperties = new ClientProperties(mockedUri);
+        var webclient = WebClient.builder().build();
+        clientWithMono = new ClientWithMonoPost(webclient, clientProperties);
     }
     @Test
     void postMonoHappyPath() throws JsonProcessingException, InterruptedException {

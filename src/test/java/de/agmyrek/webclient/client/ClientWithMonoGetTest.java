@@ -3,31 +3,28 @@ package de.agmyrek.webclient.client;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.params.ParameterizedTest;
 import org.junit.jupiter.params.provider.ValueSource;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.reactive.function.client.WebClient;
 import org.springframework.web.reactive.function.client.WebClientResponseException;
 
-import java.io.IOException;
 
+class ClientWithMonoGetTest {
 
-@SpringBootTest
-class ClientWithMonoTest {
+    static ClientWithMonoGet clientWithMono;
+    static MockWebServer mockWebServer;
 
-    @Autowired
-    private ClientWithMono clientWithMono;
-    static MockWebServer mockWebServer = new MockWebServer();
-
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry r) throws IOException {
-        //konfiguration mit mockwebserver überschreiben
-        r.add("client.uri", () -> "http://localhost:" + mockWebServer.getPort());
+    @BeforeAll
+    static void setup(){
+        mockWebServer = new MockWebServer();
+        var mockedUri = "http://localhost:" + mockWebServer.getPort();
+        var clientProperties = new ClientProperties(mockedUri);
+        var webclient = WebClient.builder().build();
+        clientWithMono = new ClientWithMonoGet(webclient, clientProperties);
     }
 
     @Test
@@ -69,7 +66,7 @@ class ClientWithMonoTest {
     }
 
     @ParameterizedTest
-    @ValueSource(ints = { 400, 500})
+    @ValueSource(ints = { 204, 400, 500})
     void getMonoMitLeeremOptionalBeiHttpStatus(int statusCode) {
         mockWebServer.enqueue(
                 new MockResponse()

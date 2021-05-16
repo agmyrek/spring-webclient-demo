@@ -3,27 +3,24 @@ package de.agmyrek.webclient.client;
 import okhttp3.mockwebserver.MockResponse;
 import okhttp3.mockwebserver.MockWebServer;
 import org.assertj.core.api.Assertions;
+import org.junit.jupiter.api.BeforeAll;
 import org.junit.jupiter.api.Test;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
-import org.springframework.test.context.DynamicPropertyRegistry;
-import org.springframework.test.context.DynamicPropertySource;
+import org.springframework.web.reactive.function.client.WebClient;
 
-import java.io.IOException;
-
-@SpringBootTest
 class ClientWithFluxTest {
 
-    @Autowired
-    private ClientWithFlux client;
-    static MockWebServer mockWebServer = new MockWebServer();
+    static ClientWithFlux client;
+    static MockWebServer mockWebServer;
 
-    @DynamicPropertySource
-    static void properties(DynamicPropertyRegistry r) throws IOException {
-        //konfiguration mit mockwebserver überschreiben
-        r.add("client.uri", () -> "http://localhost:" + mockWebServer.getPort());
+    @BeforeAll
+    static void setup(){
+        mockWebServer = new MockWebServer();
+        var mockedUri = "http://localhost:" + mockWebServer.getPort();
+        var clientProperties = new ClientProperties(mockedUri);
+        var webclient = WebClient.builder().build();
+        client = new ClientWithFlux(webclient, clientProperties);
     }
 
     @Test

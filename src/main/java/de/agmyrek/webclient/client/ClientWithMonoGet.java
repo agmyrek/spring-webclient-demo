@@ -16,7 +16,7 @@ import java.util.Optional;
 @Slf4j
 @Component
 @RequiredArgsConstructor
-public class ClientWithMono {
+public class ClientWithMonoGet {
 
     private final WebClient webClient;
     private final ClientProperties clientProperties;
@@ -28,22 +28,6 @@ public class ClientWithMono {
                 .accept(MediaType.APPLICATION_JSON)
                 .retrieve()
                 .bodyToMono(JsonNode.class)
-                .doOnError(e -> log.error("Fehler bei der Anfrage.", e))
-                .doOnSuccess(response -> log.info("Response Payload: {}", response))
-                .doOnError(WebClientResponseException.class, this::logWebclientException)
-                .block();
-    }
-
-    void postMono(JsonNode payload, String ressource) {
-
-        this.webClient
-                .post()
-                .uri(clientProperties.getUri() + ressource)
-                .contentType(MediaType.APPLICATION_JSON)
-                .bodyValue(payload)
-                .accept(MediaType.APPLICATION_JSON)
-                .retrieve()
-                .toBodilessEntity()
                 .doOnError(e -> log.error("Fehler bei der Anfrage.", e))
                 .doOnSuccess(response -> log.info("Response Payload: {}", response))
                 .doOnError(WebClientResponseException.class, this::logWebclientException)
